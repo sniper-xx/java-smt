@@ -90,7 +90,7 @@ class Yices2InterpolatingProver extends Yices2AbstractProver<Integer>
       if (status == Status.UNSAT) {
         return context.getInterpolant();
       } else {
-        throw new IllegalArgumentException("Solver state must be unsat");
+        throw new IllegalStateException("Solver state must be unsat");
       }
     }
   }
