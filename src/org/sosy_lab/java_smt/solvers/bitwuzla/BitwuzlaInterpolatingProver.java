@@ -17,7 +17,6 @@ import com.google.common.collect.Iterables;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.sosy_lab.common.ShutdownNotifier;
 import org.sosy_lab.java_smt.api.BooleanFormula;
@@ -26,6 +25,7 @@ import org.sosy_lab.java_smt.api.SolverContext.ProverOptions;
 import org.sosy_lab.java_smt.api.SolverException;
 import org.sosy_lab.java_smt.solvers.bitwuzla.api.Option;
 import org.sosy_lab.java_smt.solvers.bitwuzla.api.Options;
+import org.sosy_lab.java_smt.solvers.bitwuzla.api.Term;
 import org.sosy_lab.java_smt.solvers.bitwuzla.api.Vector_Term;
 import org.sosy_lab.java_smt.solvers.bitwuzla.api.Vector_Vector_Term;
 
@@ -53,28 +53,27 @@ class BitwuzlaInterpolatingProver extends BitwuzlaAbstractProver<Integer>
     return addConstraint0(constraint);
   }
 
-  /** Catches interpolation errors and throws a {@link SolverException}. */
-  private <A, B> B callWithError(Function<A, B> f, A args) throws SolverException {
-    try {
-      return f.apply(args);
-    } catch (IllegalArgumentException e) {
-      if (e.getMessage().endsWith("not supported")) {
-        throw new SolverException(e.getMessage());
-      } else {
-        throw e;
-      }
-    }
-  }
-
   @Override
   public BooleanFormula getInterpolant(Collection<Integer> formulasOfA)
       throws SolverException, InterruptedException {
-    return creator.encapsulateBoolean(
-        formulasOfA.isEmpty()
-            ? creator.getEnv().mk_true()
-            : callWithError(
-                env::get_interpolant,
-                new Vector_Term(FluentIterable.from(formulasOfA).transform(stack.peek()::get))));
+    Term interpolant;
+    if (formulasOfA.isEmpty()) {
+      interpolant = creator.getEnv().mk_true();
+    } else {
+      try {
+        interpolant =
+            env.get_interpolant(
+                new Vector_Term(FluentIterable.from(formulasOfA).transform(stack.peek()::get)));
+
+      } catch (IllegalArgumentException e) {
+        if (e.getMessage().endsWith("not supported")) {
+          throw new SolverException(e.getMessage());
+        } else {
+          throw e;
+        }
+      }
+    }
+    return creator.encapsulateBoolean(interpolant);
   }
 
   @Override
@@ -87,7 +86,16 @@ class BitwuzlaInterpolatingProver extends BitwuzlaAbstractProver<Integer>
             FluentIterable.from(partitionedFormulas)
                 .transform(
                     p -> new Vector_Term(FluentIterable.from(p).transform(stack.peek()::get))));
-    Vector_Term itps = callWithError(env::get_interpolants, partitions);
+    Vector_Term itps;
+    try {
+      itps = env.get_interpolants(partitions);
+    } catch (IllegalArgumentException e) {
+      if (e.getMessage().endsWith("not supported")) {
+        throw new SolverException(e.getMessage());
+      } else {
+        throw e;
+      }
+    }
     checkState(
         creator.getEnv().mk_false().equals(Iterables.getLast(itps)),
         "the last interpolant should be false");
