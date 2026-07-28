@@ -13,6 +13,7 @@ package org.sosy_lab.java_smt.solvers.bitwuzla;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import java.util.Collection;
 import java.util.List;
@@ -31,6 +32,11 @@ import org.sosy_lab.java_smt.solvers.bitwuzla.api.Vector_Vector_Term;
 
 class BitwuzlaInterpolatingProver extends BitwuzlaAbstractProver<Integer>
     implements InterpolatingProverEnvironment<Integer> {
+
+  private ImmutableSet<String> INTERPOLATION_ERROR_MESSAGES =
+      ImmutableSet.of(
+          "interpolation queries with lemmas that use fresh variables not supported",
+          "interpolation queries with mixed lemmas not supported");
 
   BitwuzlaInterpolatingProver(
       BitwuzlaFormulaManager pManager,
@@ -66,7 +72,8 @@ class BitwuzlaInterpolatingProver extends BitwuzlaAbstractProver<Integer>
                 new Vector_Term(FluentIterable.from(formulasOfA).transform(stack.peek()::get)));
 
       } catch (IllegalArgumentException e) {
-        if (e.getMessage().endsWith("not supported")) {
+        // TODO Starting with Bitwuzla 0.9.2 we could catch the Unsupported exception in C++
+        if (INTERPOLATION_ERROR_MESSAGES.contains(e.getMessage())) {
           throw new SolverException(e.getMessage());
         } else {
           throw e;
@@ -90,7 +97,7 @@ class BitwuzlaInterpolatingProver extends BitwuzlaAbstractProver<Integer>
     try {
       itps = env.get_interpolants(partitions);
     } catch (IllegalArgumentException e) {
-      if (e.getMessage().endsWith("not supported")) {
+      if (INTERPOLATION_ERROR_MESSAGES.contains(e.getMessage())) {
         throw new SolverException(e.getMessage());
       } else {
         throw e;
