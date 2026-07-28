@@ -69,13 +69,21 @@ class OpenSmtInterpolatingProver extends OpenSmtAbstractProver<Integer>
     super.popImpl();
   }
 
-  @Override
-  public BooleanFormula getInterpolant(Collection<Integer> formulasOfA) throws SolverException {
+  /**
+   * Check if OpenSMT supports interpolation for the current logic, and throw an {@link
+   * SolverException} otherwise.
+   */
+  private void checkLogicSupportInterpolation() throws SolverException {
     if (!creator.getLogic().doesLogicSupportInterpolation()) {
       throw new SolverException(
           "OpenSMT does not support interpolation for the specified logic %s."
               .formatted(creator.getLogic()));
     }
+  }
+
+  @Override
+  public BooleanFormula getInterpolant(Collection<Integer> formulasOfA) throws SolverException {
+    checkLogicSupportInterpolation();
     return creator.encapsulateBoolean(
         osmtSolver.getInterpolationContext().getSingleInterpolant(new VectorInt(formulasOfA)));
   }
@@ -83,12 +91,7 @@ class OpenSmtInterpolatingProver extends OpenSmtAbstractProver<Integer>
   @Override
   public List<BooleanFormula> getSeqInterpolants(
       List<? extends Collection<Integer>> partitionedFormulas) throws SolverException {
-    if (!creator.getLogic().doesLogicSupportInterpolation()) {
-      throw new SolverException(
-          "OpenSMT does not support interpolation for the specified logic %s."
-              .formatted(creator.getLogic()));
-    }
-
+    checkLogicSupportInterpolation();
     VectorVectorInt partitions = new VectorVectorInt();
     for (int i = 1; i < partitionedFormulas.size(); i++) {
       VectorInt prefix = new VectorInt();
