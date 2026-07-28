@@ -34,6 +34,12 @@ import org.sosy_lab.java_smt.api.SolverException;
 
 class Yices2InterpolatingProver extends Yices2AbstractProver<Integer>
     implements InterpolatingProverEnvironment<Integer> {
+
+  private ImmutableSet<String> INTERPOLATION_ERROR_MESSAGES =
+      ImmutableSet.of(
+          "mcsat: unsupported theory\n",
+          "mcsat: assumption variable has a type that mcsat cannot decide on\n");
+
   Yices2InterpolatingProver(
       Yices2FormulaCreator creator,
       Set<ProverOptions> pOptions,
@@ -77,10 +83,7 @@ class Yices2InterpolatingProver extends Yices2AbstractProver<Integer>
       try {
         status = context.check(DEFAULT_PARAMS, false);
       } catch (YicesException e) {
-        if (ImmutableSet.of(
-                "mcsat: unsupported theory\n",
-                "mcsat: assumption variable has a type that mcsat cannot decide on\n")
-            .contains(e.getMessage())) {
+        if (INTERPOLATION_ERROR_MESSAGES.contains(e.getMessage())) {
           throw new SolverException(e.getMessage().stripTrailing());
         } else {
           throw e;
