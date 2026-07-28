@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.sosy_lab.java_smt.api.SolverException;
 import org.sosy_lab.java_smt.basicimpl.AbstractModel;
 import org.sosy_lab.java_smt.solvers.opensmt.api.Logic;
@@ -40,7 +39,8 @@ class OpenSmtModel extends AbstractModel<PTRef, SRef, Logic> {
   OpenSmtModel(
       OpenSmtAbstractProver<?> pProver,
       OpenSmtFormulaCreator pCreator,
-      Collection<PTRef> pAssertedTerms) throws SolverException {
+      Collection<PTRef> pAssertedTerms)
+      throws SolverException {
     super(pProver, pCreator);
 
     osmtLogic = pCreator.getEnv();
