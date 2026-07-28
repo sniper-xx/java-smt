@@ -33,7 +33,7 @@ import org.sosy_lab.java_smt.solvers.bitwuzla.api.Vector_Vector_Term;
 class BitwuzlaInterpolatingProver extends BitwuzlaAbstractProver<Integer>
     implements InterpolatingProverEnvironment<Integer> {
 
-  private ImmutableSet<String> INTERPOLATION_ERROR_MESSAGES =
+  private static final ImmutableSet<String> INTERPOLATION_ERROR_MESSAGES =
       ImmutableSet.of(
           "interpolation queries with lemmas that use fresh variables not supported",
           "interpolation queries with mixed lemmas not supported");
