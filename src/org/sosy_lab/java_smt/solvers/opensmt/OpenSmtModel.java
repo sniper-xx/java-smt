@@ -71,7 +71,8 @@ class OpenSmtModel extends AbstractModel<PTRef, SRef, Logic> {
       if (osmtLogic.isArraySort(sort)) {
         // INFO: Disable model generation if arrays are used
         // https://github.com/usi-verification-and-security/opensmt/issues/630
-        throw new SolverException("OpenSMT does not support model generation when arrays are used");
+        throw new SolverException("OpenSMT2 can not return satisfiable assignments for arrays. To avoid wrong" +
+                "interpretation, we disallow model export for queries including arrays.");
       }
 
       if (numArgs == 0) {
