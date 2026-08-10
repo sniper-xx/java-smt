@@ -66,10 +66,10 @@ class BitwuzlaInterpolatingProver extends BitwuzlaAbstractProver<Integer>
     if (formulasOfA.isEmpty()) {
       interpolant = creator.getEnv().mk_true();
     } else {
+      Vector_Term itpVector =
+          new Vector_Term(FluentIterable.from(formulasOfA).transform(stack.peek()::get));
       try {
-        interpolant =
-            env.get_interpolant(
-                new Vector_Term(FluentIterable.from(formulasOfA).transform(stack.peek()::get)));
+        interpolant = env.get_interpolant(itpVector);
 
       } catch (IllegalArgumentException e) {
         // TODO Starting with Bitwuzla 0.9.2 we could catch the Unsupported exception in C++
